@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,12 +20,7 @@ func init() {
 }
 
 func Repeater(w http.ResponseWriter, r *http.Request) {
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(r.Body)
+	defer r.Body.Close()
 
 	body, _ := ioutil.ReadAll(r.Body)
 
