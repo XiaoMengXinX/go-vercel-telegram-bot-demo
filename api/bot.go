@@ -2,18 +2,22 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
-type Response struct {
-	Msg    string `json:"text"`
-	ChatID int64  `json:"chat_id"`
-	Method string `json:"method"`
+var bot *tgbotapi.BotAPI
+
+func init() {
+	var err error
+	bot, err = tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func Repeater(w http.ResponseWriter, r *http.Request) {
@@ -37,17 +41,10 @@ func Repeater(w http.ResponseWriter, r *http.Request) {
 	if update.Message.Text != "" {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-		data := Response{
-			Msg:    update.Message.Text,
-			Method: "sendMessage",
-			ChatID: update.Message.Chat.ID,
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		_, err := bot.Send(msg)
+		if err != nil {
+			log.Println(err)
 		}
-		msg, _ := json.Marshal(data)
-
-		log.Printf("Response %s", string(msg))
-
-		w.Header().Add("Content-Type", "application/json")
-
-		fmt.Fprintf(w, string(msg))
 	}
 }
